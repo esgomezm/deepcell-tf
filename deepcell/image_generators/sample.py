@@ -108,14 +108,14 @@ class ImageSampleArrayIterator(Iterator):
                              'with shape', self.x.shape)
 
         window_size = conv_utils.normalize_tuple(window_size, 2, 'window_size')
-
+        # it just transforms the ground truth in a binary mask or whatever is needed.
         y = _transform_masks(y, transform, data_format=data_format, **transform_kwargs)
 
         pixels_x, pixels_y, batch, y = sample_label_matrix(
             y=y,
             padding='valid',
             window_size=window_size,
-            max_training_examples=None,
+            max_training_examples=max_class_samples, # None,
             data_format=data_format)
 
         self.y = y
@@ -242,7 +242,6 @@ class ImageSampleArrayIterator(Iterator):
         # The transformation of images is not under thread lock
         # so it can be done in parallel
         return self._get_batches_of_transformed_samples(index_array)
-
 
 class SampleDataGenerator(ImageDataGenerator):
     """Generates batches of tensor image data with real-time data augmentation.
@@ -430,7 +429,7 @@ class SampleMovieArrayIterator(Iterator):
             y=y,
             padding='valid',
             window_size=window_size,
-            max_training_examples=None,
+            max_training_examples=max_class_samples, # None,
             data_format=data_format)
 
         self.y = y
@@ -487,7 +486,7 @@ class SampleMovieArrayIterator(Iterator):
             n_samples = counts[min_index]
 
             if max_class_samples is not None and max_class_samples < n_samples:
-                n_samples = max_class_samples
+                sample_label_matrix = max_class_samples
 
             for class_label in unique:
                 non_rand_ind = ((self.batch == b) & (self.y == class_label)).nonzero()[0]

@@ -71,6 +71,14 @@ For examples of how to train models with the 'deepcell-tf' library, check out th
 
 `deepcell-tf` uses `nvidia-docker` and `tensorflow` to enable GPU processing. If using GCP, there are [pre-built images](https://console.cloud.google.com/marketplace/details/nvidia-ngc-public/nvidia_gpu_cloud_image) which come with CUDA, docker, and nvidia-docker pre-installed. Otherwise, you will need to install [docker](https://docs.docker.com/install/linux/docker-ce/debian/), [nvidia-docker](https://github.com/NVIDIA/nvidia-docker), and [CUDA](https://developer.nvidia.com/cuda-downloads) separately. These instructions set up a docker container so that you can directly change the `deepcell-tf` library itself and have those changes reflected within the container
 
+### Install DeepCell as a python or conda environment
+In your console, `cd` to the directory in which you would like to clone this repository. Then, run the following commands:
+```bash
+git clone https://github.com/vanvalenlab/deepcell-tf.git
+cd deepcell-tf
+pip install -r requirements.txt
+python setup.py build_ext --inplace
+```
 ### Build a local docker container, specifying the tensorflow version with TF_VERSION
 
 ```bash

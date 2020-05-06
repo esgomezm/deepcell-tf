@@ -48,6 +48,111 @@ from deepcell.utils.misc_utils import sorted_nicely
 from deepcell.utils.tracking_utils import load_trks
 
 
+
+# TODO: make this function compatible with 3D data or images with more than 1 channel.
+def random_crop(image, label, crop_height, crop_width):
+    """"
+    Crop a random patch of size (crop_height, crop_width) in a 2D image following a sampling distribution where patches
+    where label>0 have higher probability.
+        image: 2D numpy array
+        label: 2D numpy array with the segmentation, detection or any information about image
+        crop height / crop width: determine the size of the patch to crop.
+    Returns:
+        patch of the image and the corresponding patch of the label.
+    """
+    if (image.shape[0] != label.shape[0]) or (image.shape[1] != label.shape[1]):
+        raise Exception('Image and label must have the same dimensions!')
+    if (crop_width <= image.shape[1]) and (crop_height <= image.shape[0]):
+        pdf_im = np.ones(label.shape) # label is a mask
+        pdf_im[label > 0] = 10000 # the weight we want to give to positive values in labels.
+        pdf_im = pdf_im[:-crop_height,:-crop_width] # limit the coordinates in which a centroid can lay
+        prob = np.float32(pdf_im)
+        # convert the 2D matrix into a vector and normalize it so you create a distribution of all the possible values
+        # between 1 and prod(pdf.shape)(sum=1)
+        prob = prob.ravel()/np.sum(prob)
+        choices = np.prod(pdf_im.shape)
+        # get a random centroid but following a pdf distribution.
+        index = np.random.choice(choices, size=1, p=prob)
+        coordinates = np.unravel_index(index, shape=pdf_im.shape)
+        y = coordinates[0][0]
+        x = coordinates[1][0]
+        return image[y:y+crop_height, x:x+crop_width], label[y:y+crop_height, x:x+crop_width]
+    else:
+        raise Exception('Crop shape ({0}, {1}) exceeds image dimensions ({2}, {3})!'.format(crop_height, crop_width, image.shape[0], image.shape[1]))
+
+
+
+
+def load_data_pairs(DATAPATH, mode = 'train', patch_crop=False, crop_height=256, crop_width=256):
+    import cv2
+    import sys
+    files = os.listdir(os.path.join(DATAPATH, mode, 'inputs'))
+    X = None
+    sys.stdout.write("\rLoading data...\n")
+    i = 0
+    for fname in files:
+        i = i+1
+        text = "\r{0} {1}%".format("|" * (i + 1), i/len(files) * 100)
+        sys.stdout.write(text)
+        sys.stdout.flush()
+        # input_im = cv2.imread(os.path.join(DATAPATH, mode, f), cv2.IMREAD_ANYDEPTH)
+        input_im = cv2.imread(os.path.join(DATAPATH, mode, 'inputs', fname), cv2.IMREAD_ANYDEPTH)
+        # input_im = input_im[:,:,0]
+        # mask_im = cv2.imread(os.path.join(DATAPATH, mode + '_labels', f), cv2.IMREAD_ANYDEPTH)
+        mask_im = cv2.imread(os.path.join(DATAPATH, mode, 'labels', 'instance_ids_' + fname[4:]), cv2.IMREAD_ANYDEPTH)
+        # mask_im = mask_im[:,:,0]
+        # mask_im[mask_im > 0] = 1
+
+        if patch_crop==True:
+            input_im, mask_im = random_crop(input_im, mask_im, crop_height, crop_width)
+            input_im = input_im.reshape((1, crop_height, crop_width, 1))
+            mask_im = mask_im.reshape((1, crop_height, crop_width, 1))
+        else:
+            input_im = input_im.reshape((1, input_im.shape[0], input_im.shape[1], 1))
+            mask_im = mask_im.reshape((1, mask_im.shape[0], mask_im.shape[1], 1))
+
+        if X is None:
+            X = input_im
+            y = mask_im
+        else:
+            X = np.concatenate((X,input_im), axis=0)
+            y = np.concatenate((y,mask_im), axis=0)
+    return X, y
+
+
+
+# TODO: modify this for 3D data or images with more than one channel.
+def get_data_from_path(DATAPATH, patch_crop=False, crop_height=256, crop_width=256):
+    """
+    Read the training, and test 2D data and save them as dictionaries used during the training.
+    Args:
+        DATAPATH: Main path where the data is stored as train, train_labels, test, test_labels
+        patch_crop: Whether we want to crop a small patch of each image
+        crop_height: Height size (Y-axis) of the path to crop
+        crop_width: Width size (X-axis) of the path to crop
+
+    Returns:
+        train_dict with the input and output images. The length of the training data is equal to the number of images
+        available in the directory.
+        test_dict with the input and output images that belong to the test set. The length of the data is equal to the
+        number of images available in the directory. The size of these images could be the original one instead of
+        patches, as long as all have the same size.
+    """
+    X_train, y_train = load_data_pairs(DATAPATH, mode='train', patch_crop=patch_crop,
+                                       crop_height=crop_height, crop_width=crop_width)
+    X_test, y_test = load_data_pairs(DATAPATH, mode='test', patch_crop=False)
+    train_dict = {
+        'X': X_train,
+        'y': y_train
+    }
+    test_dict = {
+        'X': X_test,
+        'y': y_test
+    }
+    return train_dict, test_dict
+
+
+
 def get_data(file_name, mode='sample', test_size=.2, seed=0):
     """Load data from NPZ file and split into train and test sets
 

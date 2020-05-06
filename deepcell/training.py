@@ -47,7 +47,7 @@ from deepcell.utils.retinanet_anchor_utils import guess_shapes
 from deepcell.utils.retinanet_anchor_utils import evaluate
 from deepcell.utils import train_utils
 from deepcell.utils import tracking_utils
-from deepcell.utils.data_utils import get_data
+from deepcell.utils.data_utils import get_data, get_data_from_path
 from deepcell.utils.train_utils import rate_scheduler
 from deepcell.utils.train_utils import get_callbacks
 
@@ -119,7 +119,7 @@ def train_model_sample(model,
     loss_path = os.path.join(model_dir, '{}.npz'.format(model_name))
 
     train_dict, test_dict = get_data(dataset, test_size=test_size, seed=seed)
-
+    # train_dict, test_dict = get_data_from_path(dataset, patch_crop=False)
     n_classes = model.layers[-1].output_shape[1 if is_channels_first else -1]
 
     # the data, shuffled and split between train and test sets
@@ -184,7 +184,10 @@ def train_model_sample(model,
         transform_kwargs=kwargs,
         window_size=window_size,
         balance_classes=balance_classes,
-        max_class_samples=max_class_samples)
+        max_class_samples=max_class_samples,
+        save_to_dir='./training_data',
+        save_prefix='t',
+        save_format='tif')
 
     val_data = datagen_val.flow(
         test_dict,
