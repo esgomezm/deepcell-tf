@@ -1,7 +1,7 @@
 # Use tensorflow/tensorflow as the base image
 # Change the build arg to edit the tensorflow version.
 # Only supporting python3.
-ARG TF_VERSION=1.14.0-gpu
+ARG TF_VERSION=1.14.0-gpu 
 
 FROM tensorflow/tensorflow:${TF_VERSION}-py3
 
@@ -12,7 +12,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     rm -rf /var/lib/apt/lists/* && \
     /usr/local/bin/pip install --upgrade pip
 
-WORKDIR /notebooks
+WORKDIR /data
 
 # Copy the setup.py and requirements.txt and install the deepcell-tf dependencies
 COPY setup.py requirements.txt /opt/deepcell-tf/
@@ -30,13 +30,13 @@ RUN pip install /opt/deepcell-tf && \
     python setup.py build_ext --inplace
 
 # Older versions of TensorFlow have notebooks, but they may not exist
-RUN if [ -n "$(find /notebooks/ -prune)" ] ; then \
-      mkdir -p /notebooks/intro_to_tensorflow && \
-      ls -d /notebooks/* | grep -v intro_to_tensorflow | \
-      xargs -r mv -t /notebooks/intro_to_tensorflow ; \
-    fi
+# RUN if [ -n "$(find /notebooks/ -prune)" ] ; then \
+#       mkdir -p /notebooks/intro_to_tensorflow && \
+#       ls -d /notebooks/* | grep -v intro_to_tensorflow | \
+#       xargs -r mv -t /notebooks/intro_to_tensorflow ; \
+#     fi
 
 # Copy over deepcell notebooks
-COPY scripts/ /notebooks/
+# COPY scripts/ /notebooks/
 
-CMD ["jupyter", "notebook", "--ip=0.0.0.0", "--allow-root"]
+# CMD ["jupyter", "notebook", "--ip=0.0.0.0", "--allow-root"]
