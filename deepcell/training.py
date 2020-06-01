@@ -118,8 +118,9 @@ def train_model_sample(model,
     model_path = os.path.join(model_dir, '{}.h5'.format(model_name))
     loss_path = os.path.join(model_dir, '{}.npz'.format(model_name))
 
-    train_dict, test_dict = get_data(dataset, test_size=test_size, seed=seed)
-    # train_dict, test_dict = get_data_from_path(dataset, patch_crop=False)
+    # train_dict, test_dict = get_data(dataset, test_size=test_size, seed=seed)
+
+    train_dict, test_dict = get_data_from_path(dataset, patch_crop=False)
     n_classes = model.layers[-1].output_shape[1 if is_channels_first else -1]
 
     # the data, shuffled and split between train and test sets
@@ -184,10 +185,10 @@ def train_model_sample(model,
         transform_kwargs=kwargs,
         window_size=window_size,
         balance_classes=balance_classes,
-        max_class_samples=max_class_samples,
-        save_to_dir='./training_data',
-        save_prefix='t',
-        save_format='tif')
+        max_class_samples=max_class_samples)
+        # save_to_dir='./training_data',
+        # save_prefix='t',
+        # save_format='tif')
 
     val_data = datagen_val.flow(
         test_dict,

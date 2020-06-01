@@ -6,7 +6,9 @@ from tensorflow.keras.optimizers import SGD
 from deepcell.utils.train_utils import rate_scheduler
 from deepcell import model_zoo
 # from deepcell.training import train_model_sample
-from deepcell.own_training import train_model_sample_fromdirectory
+
+# we need this line as some code from deepcell has been modified
+from own_training import train_model_sample_fromdirectory
 import argparse
 
 def str2bool(v):

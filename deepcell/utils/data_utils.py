@@ -86,20 +86,21 @@ def random_crop(image, label, crop_height, crop_width):
 def load_data_pairs(DATAPATH, mode = 'train', patch_crop=False, crop_height=256, crop_width=256):
     import cv2
     import sys
-    files = os.listdir(os.path.join(DATAPATH, mode, 'inputs'))
+    files = os.listdir(os.path.join(DATAPATH, mode))
+    # files = os.listdir(os.path.join(DATAPATH, mode, 'inputs'))
     X = None
     sys.stdout.write("\rLoading data...\n")
     i = 0
     for fname in files:
         i = i+1
-        text = "\r{0} {1}%".format("|" * (i + 1), i/len(files) * 100)
+        text = "\r{0} {1}%".format("|" * 20, i/len(files) * 100)
         sys.stdout.write(text)
         sys.stdout.flush()
-        # input_im = cv2.imread(os.path.join(DATAPATH, mode, f), cv2.IMREAD_ANYDEPTH)
-        input_im = cv2.imread(os.path.join(DATAPATH, mode, 'inputs', fname), cv2.IMREAD_ANYDEPTH)
+        input_im = cv2.imread(os.path.join(DATAPATH, mode, fname), cv2.IMREAD_ANYDEPTH)
+        # input_im = cv2.imread(os.path.join(DATAPATH, mode, 'inputs', fname), cv2.IMREAD_ANYDEPTH)
         # input_im = input_im[:,:,0]
-        # mask_im = cv2.imread(os.path.join(DATAPATH, mode + '_labels', f), cv2.IMREAD_ANYDEPTH)
-        mask_im = cv2.imread(os.path.join(DATAPATH, mode, 'labels', 'instance_ids_' + fname[4:]), cv2.IMREAD_ANYDEPTH)
+        mask_im = cv2.imread(os.path.join(DATAPATH, mode + '_labels', 'instance_ids_' + fname[4:]), cv2.IMREAD_ANYDEPTH)
+        # mask_im = cv2.imread(os.path.join(DATAPATH, mode+, 'labels', 'instance_ids_' + fname[4:]), cv2.IMREAD_ANYDEPTH)
         # mask_im = mask_im[:,:,0]
         # mask_im[mask_im > 0] = 1
 
